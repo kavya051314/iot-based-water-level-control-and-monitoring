@@ -1,0 +1,50 @@
+#define TRIG 9     // Ultrasonic Sensor TRIG Pin
+#define ECHO 8     // Ultrasonic Sensor ECHO Pin
+#define RELAY 7    // Relay Module for Pump
+
+long duration;
+int distance;
+int tankHeight = 30;   // Tank height in cm
+int waterLevel;
+
+void setup() {
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+  pinMode(RELAY, OUTPUT);
+  Serial.begin(9600);
+  digitalWrite(RELAY, HIGH); // Pump OFF initially
+}
+
+void loop() {
+  // Send ultrasonic pulse
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  // Read echo
+  duration = pulseIn(ECHO, HIGH);
+  distance = duration * 0.034 / 2; // Convert to cm
+
+  // Calculate water level
+  waterLevel = tankHeight - distance;
+  if (waterLevel < 0) waterLevel = 0;
+  if (waterLevel > tankHeight) waterLevel = tankHeight;
+
+  // Print to Serial Monitor
+  Serial.print("Water Level: ");
+  Serial.print(waterLevel);
+  Serial.println(" cm");
+
+  // Control Pump
+  if (waterLevel < 5) {
+    digitalWrite(RELAY, LOW);  // Pump ON
+    Serial.println("Pump: ON (Filling Tank)");
+  } else if (waterLevel > 25) {
+    digitalWrite(RELAY, HIGH); // Pump OFF
+    Serial.println("Pump: OFF (Tank Full)");
+  }
+
+  delay(1000); // Wait 1 sec
+}
